@@ -58,10 +58,14 @@ function selectElem(event) {
         return;
     }
     pathForSelect = group.children[hitResult.item.name];
-
-    connection.invoke("lockElem", pathForSelect.name).catch(function (err) {
-        return console.error(err.toString());
-    });
+    if (!lockList[pathForSelect.name]) {
+        connection.invoke("lockElem", pathForSelect.name).catch(function (err) {
+            return console.error(err.toString());
+        });
+    } else {
+        alert("Item is busy")
+        pathForSelect = null;
+    }
 }
 
 function startArea(e) {
@@ -160,20 +164,30 @@ function editeNote(event) {
 }
 
 function removeElem(event) {
-    if (pathForSelect)
+    if (pathForSelect) {
+        connection.invoke("removeSVG", pathForSelect.name).catch(function (err) {
+            return console.error(err.toString());
+        });
         pathForSelect.remove();
+    }
 }
 
 function editeText(event) {
     if (event.item) {
+
         var p = event.item.hitTest(event.point, hitOptions).item;
         if (p.className == 'PointText') {
-            var bounds = p.bounds;
-            bounds.width += 16;
-            bounds.height += 16;
-            setText(event, p.bounds, p.content);
-            selectElem(event);
-            removeElem(event);
+            if (!lockList[p.name]) {
+                var bounds = p.bounds;
+                bounds.width += 16;
+                bounds.height += 16;
+                connection.invoke("lockElem", p.name).catch(function (err) {
+                    return console.error(err.toString());
+                });
+                setText(event, p.bounds, p.content);
+                selectElem(event);
+                removeElem(event);
+            } else alert("Item is busy")
         }
     }
     else {
@@ -234,6 +248,10 @@ connection.start().then(function () {
     })
     connection.on("unLock", function (id) {
         lockList[id] = false;
+    })
+
+    connection.on("removeSVG", function (id) {
+        group.children[id].remove()
     })
 
 }).catch(function (err) {

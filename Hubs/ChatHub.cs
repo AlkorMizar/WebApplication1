@@ -15,7 +15,15 @@ namespace WebApplication1.Hubs
         {
             await Clients.Others.SendAsync("addLock", id);
         }
+        public async Task removeNote(string id)
+        {
+            await Clients.Others.SendAsync("removeNote", id);
+        }
 
+        public async Task removeSVG(string id)
+        {
+            await Clients.Others.SendAsync("removeSVG", id);
+        }
         public async Task unlockElem(string id)
         {
             await Clients.Others.SendAsync("unLock", id);

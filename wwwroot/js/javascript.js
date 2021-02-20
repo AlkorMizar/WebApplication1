@@ -28,7 +28,6 @@ function setText(event, bounds, text) {
             });
             text.name = "id" + text.id
             group.addChild(text);
-            console.log(text.name)
             value = e.target.value;
             var svg = text.exportSVG({ asString:true});
             connection.invoke("createFromSVG", text.name,svg).catch(function (err) {
@@ -61,38 +60,59 @@ function setNote(bounds, text, name,fl) {
     }
 
     draggable = new PlainDraggable(document.getElementById(name));
-    $(textarea).keyup(function (e) {
-        if ((e.keyCode || e.which) == 13) {
-            $(e.target).append("◆");
-            placeCaretAtEnd(document.getElementById(e.target.id));
+    draggable.onDragStart = function (e) {
+        if (lockList[this.element]) {
+            this.containment = { left: 0, top: 0, width: 0, height: 0 };
+            alert("Item is busy")
+        } else {
+            if (!$("#move").prop("checked")) {
+                this.containment = { left: 0, top: 0, width: 0, height: 0 };
+            } else {
+                this.containment = { left: pos.left, top: pos.top, width: 5000, height: 5000 };
+            }
         }
-        console.log(document.getElementById(e.target.id).innerHTML)
-        connection.invoke("changeTextOfNote", e.target.id, document.getElementById(e.target.id).innerHTML).catch(function (err) {
-            return console.error(err.toString());
-        });
+    }
+
+    $(textarea).keyup(function (e) {
+        if (!lockList[e.target.id]) {
+            if ((e.keyCode || e.which) == 13) {
+                $(e.target).append("◆");
+                placeCaretAtEnd(document.getElementById(e.target.id));
+            }
+            connection.invoke("changeTextOfNote", e.target.id, document.getElementById(e.target.id).innerHTML).catch(function (err) {
+                return console.error(err.toString());
+            });
+        } else {
+            alert("Item is busy")
+        }
     })
 
     $(textarea).focusout(function (e) {
-        $(e.target).prop('readonly', true);
         connection.invoke("unlockElem", e.target.id).catch(function (err) {
             return console.error(err.toString());
         });
     });
 
     $(textarea).focusin(function (e) {
-        placeCaretAtEnd(document.getElementById(e.target.id));
-        connection.invoke("lockElem", e.target.id).catch(function (err) {
-            return console.error(err.toString());
-        });
+        if (!lockList[e.target.id]) {
+            if ($("#note").prop("checked")) {
+                placeCaretAtEnd(document.getElementById(e.target.id));
+                connection.invoke("lockElem", e.target.id).catch(function (err) {
+                    return console.error(err.toString());
+                });
+            } else {
+                e.target.blur()
+            }
+        } else {
+            e.target.blur();
+            alert("Item is busy")
+        }
     })
-    
+
     $(textarea).mouseup(function (e) {
-        
         var id = e.target.id,
             x = $(e.target).position().left,
             y = $(e.target).position().top;
-        console.log($(e.target).position())
-        console.log(x + " " + y)
         connection.invoke("changePosOfNote",id,x,y ).catch(function (err) {
             return console.error(err.toString());
         });
@@ -106,13 +126,19 @@ function setNote(bounds, text, name,fl) {
         });
 
     textarea.click(function (e) {
-        console.log("cl")
-        if ($("#erase").prop("checked")) {
-            $(e.target).remove();
-        } else if ($("#note").prop("checked")) {
-            $(e.target).prop('readonly', false);
-            placeCaretAtEnd(document.getElementById(e.target.id));
-            $(e.target).focus();
+        if (!lockList[e.target.id]) {
+            if ($("#erase").prop("checked")) {
+                connection.invoke("lockElem", e.target.id).catch(function (err) {
+                    return console.error(err.toString());
+                });
+                connection.invoke("removeNote", e.target.id).catch(function (err) {
+                    return console.error(err.toString());
+                });
+                $(e.target).remove();
+            } else if ($("#note").prop("checked")) {
+                placeCaretAtEnd(document.getElementById(e.target.id));
+                $(e.target).focus();
+            }
         }
     })
 };
@@ -146,6 +172,10 @@ function setVar(con, gr,ll) {
         draggable.top = y;
     })
 
+    connection.on("removeNote", function (id) {
+        $("#"+id).remove();
+    })
+
     connection.on("createNote", function (id, x, y, text, h, w) {
         var el = (document.getElementById(id));
         if (el) {
@@ -163,7 +193,6 @@ function setVar(con, gr,ll) {
 
     connection.on("changeTextOfNote", function (id, text) {
         id = "#" + id;
-        console.log(text)
         $(id).html(text)
         
     })
