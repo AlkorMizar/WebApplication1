@@ -8,10 +8,9 @@ namespace WebApplication1.Hubs
     {
 
         public async Task changePosOfNote(string id,double x,double y) {
-            await Clients.Others.SendAsync("changePosOfNote", id, x, y);
+             await Clients.Others.SendAsync("changePosOfNote", id, x, y);
 
-        }
-
+         }
         public async Task lockElem(string id)
         {
             await Clients.Others.SendAsync("addLock", id);

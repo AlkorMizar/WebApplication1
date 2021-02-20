@@ -1,4 +1,5 @@
-﻿var nameF = 0;
+﻿
+var nameF = 0;
 var option = 0;
 var path;
 var segment, pathForSelect;
@@ -61,7 +62,6 @@ function selectElem(event) {
     connection.invoke("lockElem", pathForSelect.name).catch(function (err) {
         return console.error(err.toString());
     });
-    //project.activeLayer.addChild(hitResult.item);
 }
 
 function startArea(e) {
@@ -108,8 +108,6 @@ function adjustArea(e) {
 function dragElem(event) {
     if (pathForSelect) {
         pathForSelect.position += event.delta;
-        console.log(group.isChild(pathForSelect))
-        console.log(pathForSelect.name)
         connection.invoke("changePos", pathForSelect.name, pathForSelect.position.x, pathForSelect.position.y).catch(function (err) {
             return console.error(err.toString());
         });
@@ -118,10 +116,9 @@ function dragElem(event) {
 
 // When the mouse is released, we simplify the path:
 function onMouseUp(event) {
-    alert("dsada")
     switch (option) {
         case 0:
-            setLine(event)        
+            setLine(event)
             break;
         case 1:
             editeNote(event);
@@ -132,19 +129,12 @@ function onMouseUp(event) {
         case 3:
             removeElem(event)
             break;
-        case 4:
-            var hitResult = project.hitTest(event.point, hitOptions);
-    if (!hitResult) {
-        return;
     }
-    console.log("t " + hitResult.item.name + " " + group.children[hitResult.item.name])
-            break;
-    }
+}
 
 function setLine(e) {
     path.simplify(10);
     group.addChild(path);
-    console.log(path.name + " " + group.isChild(path))
     var svg = path.exportSVG({ asString: true });
     connection.invoke("createFromSVG", path.name, svg).catch(function (err) {
         return console.error(err.toString());
@@ -164,14 +154,12 @@ function editeNote(event) {
         fillColor: "Aqua",
         strokeColor: 'blue'
     });
-    console.log(rect.bounds)
     setNote(rect.bounds, "◆", ("idd" + nameF), true);
     nameF++;
     rect.remove();
 }
 
 function removeElem(event) {
-    console.log(pathForSelect)
     if (pathForSelect)
         pathForSelect.remove();
 }
@@ -179,7 +167,6 @@ function removeElem(event) {
 function editeText(event) {
     if (event.item) {
         var p = event.item.hitTest(event.point, hitOptions).item;
-        console.log("asdsa " + p)
         if (p.className == 'PointText') {
             var bounds = p.bounds;
             bounds.width += 16;
@@ -225,7 +212,6 @@ connection.start().then(function () {
     setVar(connection, group, lockList)
     connection.on("createFromSVG", function (id, svg) {
         var el = group.children[id];
-        console.log(group.isChild(id))
         if (el) {
             if (lockList[el.name]) {
                 lockList[el.name] = false;
@@ -233,18 +219,12 @@ connection.start().then(function () {
             }
             el.name = el.name + el.name;
         }
-        console.log(group.isChild(el))
         el = project.importSVG(svg);
         el.name = id;
-        group.addChild(el);
-
-        console.log(group.isChild(el))
-
-        
+        group.addChild(el);      
     })
     connection.on("changePos", function (id, x, y) {
         var el = group.children[id];
-        console.log(el)
         group.children[id].position = new Point(x, y);
         
     })
@@ -259,5 +239,4 @@ connection.start().then(function () {
 }).catch(function (err) {
     return console.error(err.toString());
 });
-
-
+    

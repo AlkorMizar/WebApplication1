@@ -80,7 +80,6 @@ function setNote(bounds, text, name,fl) {
     });
 
     $(textarea).focusin(function (e) {
-        alert()
         placeCaretAtEnd(document.getElementById(e.target.id));
         connection.invoke("lockElem", e.target.id).catch(function (err) {
             return console.error(err.toString());
@@ -88,10 +87,12 @@ function setNote(bounds, text, name,fl) {
     })
     
     $(textarea).mouseup(function (e) {
-        console.log("ch")
+        
         var id = e.target.id,
             x = $(e.target).position().left,
             y = $(e.target).position().top;
+        console.log($(e.target).position())
+        console.log(x + " " + y)
         connection.invoke("changePosOfNote",id,x,y ).catch(function (err) {
             return console.error(err.toString());
         });
@@ -138,14 +139,14 @@ function setVar(con, gr,ll) {
     group = gr;
     lockList=ll
     connection = con;
+
     connection.on("changePosOfNote", function (id, x, y) {
-        console(id)
-        id = "#" + id;
-        $(id).css({ top: y+"",left:x+"" })
+        draggable = new PlainDraggable(document.getElementById(id));
+        draggable.left = x;
+        draggable.top = y;
     })
-    
+
     connection.on("createNote", function (id, x, y, text, h, w) {
-        alert()
         var el = (document.getElementById(id));
         if (el) {
             if (lockList[el.id]) {
