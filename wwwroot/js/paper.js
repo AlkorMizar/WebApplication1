@@ -112,7 +112,8 @@ function adjustArea(e) {
 function dragElem(event) {
     if (pathForSelect) {
         pathForSelect.position += event.delta;
-        connection.invoke("changePos", pathForSelect.name, pathForSelect.position.x, pathForSelect.position.y).catch(function (err) {
+        var svg = pathForSelect.exportSVG({ asString: true });
+        connection.invoke("changePos", pathForSelect.name, pathForSelect.position.x, pathForSelect.position.y,svg).catch(function (err) {
             return console.error(err.toString());
         });
     }
@@ -223,7 +224,32 @@ connection.start().then(function () {
     $("#text").prop("disabled", false);
     $("#erase").prop("disabled", false);
     $("#move").prop("disabled", false);
-    setVar(connection, group, lockList)
+
+    connection.invoke("getLocked").catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    connection.on("setLocked", function (list) {
+        for (var i = list.length - 1; i >= 0; i--) {
+            lockList[list[i]] = true;
+        }
+    })
+
+    connection.invoke("getSVG").catch(function (err) {
+        return console.error(err.toString());
+    });
+    connection.on("setSVG", function (list) {
+        console.log(list)
+        /*for (var i = 0; i < list.length; i++) {
+            var el = project.importSVG(list[i].Content);
+            el.name = list[i].Name;
+            group.addChild(el);
+        }*/
+    })
+    connection.on("error", function (list) {
+        console.log(list)
+    })
+    setVar(connection, group, lockList);
     connection.on("createFromSVG", function (id, svg) {
         var el = group.children[id];
         if (el) {

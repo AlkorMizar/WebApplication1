@@ -41,17 +41,20 @@ function setText(event, bounds, text) {
 
 
 function setNote(bounds, text, name,fl) {
-    var pos = $("#parent-div").position();
-    var x = bounds.x ,
-        y = bounds.y ,
-        h = bounds.height,
-        w = bounds.width;
-    var textarea = $("<div id='" + name + "'contenteditable='true'" +
-        "style='position:absolute; left:" + (bounds.x + pos.left) +
-        "px; top:" + (bounds.y + pos.top) + "px; width: " + bounds.width +
-        "px; height: " + bounds.height +
-        "px; resize; background-color:PaleTurquoise;border-color:MidnightBlue;border-style: solid;overflow: auto'></div>");
-    textarea.append(text);
+    var textarea;
+    if (fl) {
+        var pos = $("#parent-div").position();
+        var x = bounds.x,
+            y = bounds.y,
+            h = bounds.height,
+            w = bounds.width;
+        textarea = $("<div id='" + name + "'contenteditable='true'" +
+            "style='position:absolute; left:" + (bounds.x + pos.left) +
+            "px; top:" + (bounds.y + pos.top) + "px; width: " + bounds.width +
+            "px; height: " + bounds.height +
+            "px; resize; background-color:PaleTurquoise;border-color:MidnightBlue;border-style: solid;overflow: auto'></div>");
+        textarea.append(text);
+    } else textarea = text;
     $(textarea).appendTo("#parent-div");
 
     if (fl) {
@@ -79,7 +82,7 @@ function setNote(bounds, text, name,fl) {
                 $(e.target).append("◆");
                 placeCaretAtEnd(document.getElementById(e.target.id));
             }
-            connection.invoke("changeTextOfNote", e.target.id, document.getElementById(e.target.id).innerHTML).catch(function (err) {
+            connection.invoke("changeTextOfNote", e.target.id, document.getElementById(e.target.id).innerHTML, document.getElementById(e.target.id).outerHTML).catch(function (err) {
                 return console.error(err.toString());
             });
         } else {
@@ -113,15 +116,15 @@ function setNote(bounds, text, name,fl) {
         var id = e.target.id,
             x = $(e.target).position().left,
             y = $(e.target).position().top;
-        connection.invoke("changePosOfNote",id,x,y ).catch(function (err) {
+        connection.invoke("changePosOfNote", id, x, y, document.getElementById(e.target.id).outerHTML ).catch(function (err) {
             return console.error(err.toString());
         });
         connection.invoke("unlockElem", e.target.id).catch(function (err) {
             return console.error(err.toString());
         });
     })
-    if(fl)
-        connection.invoke("createNote", name, x, y, text,h,w).catch(function (err) {
+    if (fl)
+        connection.invoke("createNote", name, textarea).catch(function (err) {
             return console.error(err.toString());
         });
 
@@ -166,6 +169,16 @@ function setVar(con, gr,ll) {
     lockList=ll
     connection = con;
 
+    connection.invoke("getHTML").catch(function (err) {
+        return console.error(err.toString());
+    });
+    connection.on("setHTML", function (list) {
+        console.log(list)
+        /*for (var i = 0; i < list.length; i++) {
+            setNote(null, list[i].Content, list[i].Name, false)
+        }*/
+    })
+
     connection.on("changePosOfNote", function (id, x, y) {
         draggable = new PlainDraggable(document.getElementById(id));
         draggable.left = x;
@@ -176,7 +189,7 @@ function setVar(con, gr,ll) {
         $("#"+id).remove();
     })
 
-    connection.on("createNote", function (id, x, y, text, h, w) {
+    connection.on("createNote", function (id, html) {
         var el = (document.getElementById(id));
         if (el) {
             if (lockList[el.id]) {
@@ -188,7 +201,7 @@ function setVar(con, gr,ll) {
             draggable = new PlainDraggable(document.getElementById(el.id));
         }
 
-        setNote({ "y": y, "x": x, "height": h, "width":w},text,id,false)
+        setNote(null, html, id, false)
     })
 
     connection.on("changeTextOfNote", function (id, text) {
