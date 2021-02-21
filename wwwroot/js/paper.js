@@ -159,7 +159,7 @@ function editeNote(event) {
         fillColor: "Aqua",
         strokeColor: 'blue'
     });
-    setNote(rect.bounds, "◆", ("idd" + nameF), true);
+    setNote(rect.bounds, "-", ("idd" + nameF), true);
     nameF++;
     rect.remove();
 }
@@ -240,11 +240,12 @@ connection.start().then(function () {
     });
     connection.on("setSVG", function (list) {
         console.log(list)
-        /*for (var i = 0; i < list.length; i++) {
-            var el = project.importSVG(list[i].Content);
-            el.name = list[i].Name;
+        for (var i = 0; i < list.length; i++) {
+            console.log(list[i])
+            var el = project.importSVG(list[i].content);
+            el.name = list[i].name;
             group.addChild(el);
-        }*/
+        }
     })
     connection.on("error", function (list) {
         console.log(list)

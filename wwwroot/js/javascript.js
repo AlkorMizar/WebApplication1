@@ -40,10 +40,11 @@ function setText(event, bounds, text) {
 
 
 
-function setNote(bounds, text, name,fl) {
+function setNote(bounds, text, name, fl) {
+    var pos = $("#parent-div").position();
     var textarea;
     if (fl) {
-        var pos = $("#parent-div").position();
+  
         var x = bounds.x,
             y = bounds.y,
             h = bounds.height,
@@ -54,7 +55,7 @@ function setNote(bounds, text, name,fl) {
             "px; height: " + bounds.height +
             "px; resize; background-color:PaleTurquoise;border-color:MidnightBlue;border-style: solid;overflow: auto'></div>");
         textarea.append(text);
-    } else textarea = text;
+    } else textarea = $(text);
     $(textarea).appendTo("#parent-div");
 
     if (fl) {
@@ -64,7 +65,7 @@ function setNote(bounds, text, name,fl) {
 
     draggable = new PlainDraggable(document.getElementById(name));
     draggable.onDragStart = function (e) {
-        if (lockList[this.element]) {
+        if (lockList[this.element.id]) {
             this.containment = { left: 0, top: 0, width: 0, height: 0 };
             alert("Item is busy")
         } else {
@@ -79,7 +80,7 @@ function setNote(bounds, text, name,fl) {
     $(textarea).keyup(function (e) {
         if (!lockList[e.target.id]) {
             if ((e.keyCode || e.which) == 13) {
-                $(e.target).append("◆");
+                $(e.target).append("-");
                 placeCaretAtEnd(document.getElementById(e.target.id));
             }
             connection.invoke("changeTextOfNote", e.target.id, document.getElementById(e.target.id).innerHTML, document.getElementById(e.target.id).outerHTML).catch(function (err) {
@@ -112,19 +113,21 @@ function setNote(bounds, text, name,fl) {
         }
     })
 
-    $(textarea).mouseup(function (e) {
-        var id = e.target.id,
-            x = $(e.target).position().left,
-            y = $(e.target).position().top;
-        connection.invoke("changePosOfNote", id, x, y, document.getElementById(e.target.id).outerHTML ).catch(function (err) {
+    draggable.onMove = function (e) {
+        var id = this.element.id,
+            x = e.left,
+            y = e.top;
+        var name = this.element.id
+        connection.invoke("changePosOfNote", id, x, y, document.getElementById(name).outerHTML).catch(function (err) {
             return console.error(err.toString());
         });
-        connection.invoke("unlockElem", e.target.id).catch(function (err) {
+        connection.invoke("unlockElem", name).catch(function (err) {
             return console.error(err.toString());
         });
-    })
+    }
+
     if (fl)
-        connection.invoke("createNote", name, textarea).catch(function (err) {
+        connection.invoke("createNote", name, textarea[0].outerHTML).catch(function (err) {
             return console.error(err.toString());
         });
 
@@ -174,9 +177,9 @@ function setVar(con, gr,ll) {
     });
     connection.on("setHTML", function (list) {
         console.log(list)
-        /*for (var i = 0; i < list.length; i++) {
-            setNote(null, list[i].Content, list[i].Name, false)
-        }*/
+        for (var i = 0; i < list.length; i++) {
+            setNote(null, list[i].content, list[i].name, false)
+        }
     })
 
     connection.on("changePosOfNote", function (id, x, y) {

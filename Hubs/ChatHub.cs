@@ -71,21 +71,22 @@ namespace WebApplication1.Hubs
         public async Task createFromSVG(string id,string svg)
         {
             addToDB(id, svg, false);
-            try
-            {
-                await Clients.Others.SendAsync("createFromSVG", id, svg);
-            }
-            catch (Exception e)
-            {
-                await Clients.Caller.SendAsync("error", e);
+            await Clients.Others.SendAsync("createFromSVG", id, svg);
 
-            }
-            
         }
 
         public async Task createNote(string id,string html) {
-            addToDB(id, html,true);
-            await Clients.Others.SendAsync("createNote", id,html);
+           
+            try
+            {
+                addToDB(id, html,true);
+                await Clients.Others.SendAsync("createNote", id, html);
+            }
+            catch (Exception e)
+            {
+                await Clients.Caller.SendAsync("error",e,html,id);
+            }
+            
         }
 
         public async Task changePos(string id, double x, double y,string svg)
