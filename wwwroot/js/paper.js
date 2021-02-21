@@ -239,7 +239,6 @@ connection.start().then(function () {
         return console.error(err.toString());
     });
     connection.on("setSVG", function (list) {
-        console.log(list)
         for (var i = 0; i < list.length; i++) {
             console.log(list[i])
             var el = project.importSVG(list[i].content);

@@ -53,7 +53,7 @@ function setNote(bounds, text, name, fl) {
             "style='position:absolute; left:" + (bounds.x + pos.left) +
             "px; top:" + (bounds.y + pos.top) + "px; width: " + bounds.width +
             "px; height: " + bounds.height +
-            "px; resize; background-color:PaleTurquoise;border-color:MidnightBlue;border-style: solid;overflow: auto'></div>");
+            "px; resize: both;; background-color:PaleTurquoise;border-color:MidnightBlue;border-style: solid;overflow: auto'></div>");
         textarea.append(text);
     } else textarea = $(text);
     $(textarea).appendTo("#parent-div");
@@ -62,7 +62,7 @@ function setNote(bounds, text, name, fl) {
         textarea.focus();
         placeCaretAtEnd(document.getElementById(name));
     }
-
+    
     draggable = new PlainDraggable(document.getElementById(name));
     draggable.onDragStart = function (e) {
         if (lockList[this.element.id]) {
@@ -76,7 +76,7 @@ function setNote(bounds, text, name, fl) {
             }
         }
     }
-
+ 
     $(textarea).keyup(function (e) {
         if (!lockList[e.target.id]) {
             if ((e.keyCode || e.which) == 13) {
@@ -176,7 +176,6 @@ function setVar(con, gr,ll) {
         return console.error(err.toString());
     });
     connection.on("setHTML", function (list) {
-        console.log(list)
         for (var i = 0; i < list.length; i++) {
             setNote(null, list[i].content, list[i].name, false)
         }
