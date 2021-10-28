@@ -167,10 +167,24 @@ function placeCaretAtEnd(el) {
     }
 }
 
+
+
 function setVar(con, gr,ll) {
     group = gr;
     lockList=ll
     connection = con;
+
+    connection.hub.disconnected(function () {
+        setTimeout(function () {
+            $.connection.hub.start();
+        }, 5000); // Restart connection after 5 seconds.
+    });
+
+    connection.hub.disconnected(function () {
+        setTimeout(function () {
+            $.connection.hub.start();
+        }, 5000); // Restart connection after 5 seconds.
+    });
 
     connection.invoke("getHTML").catch(function (err) {
         return console.error(err.toString());
@@ -211,5 +225,7 @@ function setVar(con, gr,ll) {
         $(id).html(text)
         
     })
+
+    
 }
 

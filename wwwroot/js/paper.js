@@ -212,6 +212,7 @@ $("#move").prop("disabled", true);
 var connection = new signalR.HubConnectionBuilder().withUrl("/marmb").build();
 
 
+
 connection.on("addSVG", function (svg, id, x, y) {
     item = project.exportSVG(svg)
     item.point = new Point(x, y);
@@ -224,6 +225,12 @@ connection.start().then(function () {
     $("#text").prop("disabled", false);
     $("#erase").prop("disabled", false);
     $("#move").prop("disabled", false);
+
+    connection.hub.disconnected(function () {
+        setTimeout(function () {
+            $.connection.hub.start();
+        }, 5000); // Restart connection after 5 seconds.
+    });
 
     connection.invoke("getLocked").catch(function (err) {
         return console.error(err.toString());
